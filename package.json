@@ -1,0 +1,16 @@
+{
+  "name": "carepal-visit-feedback-dashboard",
+  "version": "1.0.0",
+  "description": "TheCarePal Visit Feedback and Care Quality Dashboard - Task ID: FS-08",
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue.bold,green.bold\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "seed": "npm run seed --prefix server",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
