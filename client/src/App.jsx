@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import TopHeader from './components/TopHeader';
 import AdminDashboard from './pages/AdminDashboard';
 import IncidentTriage from './pages/IncidentTriage';
 import TokenTester from './pages/TokenTester';
@@ -27,6 +28,7 @@ export default function App() {
 
   const [isDigestOpen, setIsDigestOpen] = useState(false);
   const [triageAlertCount, setTriageAlertCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadAlertCount();
@@ -70,80 +72,115 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Public Feedback Portal View (distraction-free for families)
+  if (activeTab === 'feedback') {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+        {/* Floating Quick Return Pill for evaluation demo convenience */}
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={handleNavigateHome}
+            className="px-3.5 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-semibold shadow-lg backdrop-blur-md transition-all flex items-center space-x-1.5"
+          >
+            <span>← Return to Admin Dashboard</span>
+          </button>
+        </div>
+
+        <FeedbackPortal
+          token={activeToken}
+          onNavigateHome={handleNavigateHome}
+        />
+      </div>
+    );
+  }
+
+  // Admin & Operations View with Left Vertical Sidebar
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans">
       
-      {/* Show Navbar when in Admin mode */}
-      {activeTab !== 'feedback' && (
-        <Navbar
+      {/* 1. Left Vertical Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          window.history.pushState({}, '', '/');
+        }}
+        triageAlertCount={triageAlertCount}
+        onOpenDigest={() => setIsDigestOpen(true)}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      {/* 2. Main Content Wrapper (shifted by sidebar width on large screens) */}
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+        
+        {/* Sticky Top Header */}
+        <TopHeader
           activeTab={activeTab}
-          setActiveTab={(tab) => {
-            setActiveTab(tab);
-            if (tab !== 'feedback') {
-              window.history.pushState({}, '', '/');
-            }
-          }}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onOpenDigest={() => setIsDigestOpen(true)}
           triageAlertCount={triageAlertCount}
         />
-      )}
 
-      {/* Main Content Area */}
-      <main className={activeTab === 'feedback' ? 'flex-1' : 'flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6'}>
-        {activeTab === 'dashboard' && (
-          <AdminDashboard
-            onNavigateTriage={() => setActiveTab('triage')}
-            onOpenDigest={() => setIsDigestOpen(true)}
-          />
-        )}
+        {/* Content View Container */}
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-7xl w-full mx-auto">
+          {activeTab === 'dashboard' && (
+            <AdminDashboard
+              onNavigateTriage={() => setActiveTab('triage')}
+              onOpenDigest={() => setIsDigestOpen(true)}
+            />
+          )}
 
-        {activeTab === 'triage' && (
-          <IncidentTriage
-            onStatusChange={loadAlertCount}
-          />
-        )}
+          {activeTab === 'triage' && (
+            <IncidentTriage
+              onStatusChange={loadAlertCount}
+            />
+          )}
 
-        {activeTab === 'tokens' && (
-          <TokenTester
-            onSelectToken={handleSelectToken}
-          />
-        )}
+          {activeTab === 'tokens' && (
+            <TokenTester
+              onSelectToken={handleSelectToken}
+            />
+          )}
+        </main>
 
-        {activeTab === 'feedback' && (
-          <FeedbackPortal
-            token={activeToken}
-            onNavigateHome={handleNavigateHome}
-          />
-        )}
-      </main>
-
-      {/* Operations Email Digest Modal */}
-      <EmailDigestModal
-        isOpen={isDigestOpen}
-        onClose={() => setIsDigestOpen(false)}
-      />
-
-      {/* Footer (Admin Mode) */}
-      {activeTab !== 'feedback' && (
-        <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span>© 2026 TheCarePal Quality Assurance System • Built for Task FS-08</span>
-            <div className="flex space-x-4 text-slate-400">
-              <button onClick={() => handleSelectToken('demo-active-token')} className="hover:text-teal-700">
-                Test Public Form
+        {/* Operations Footer */}
+        <footer className="bg-white border-t border-slate-200/80 py-5 text-center text-xs text-slate-500">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span>© 2026 TheCarePal Home Healthcare India • Clinical Quality Ops</span>
+            <div className="flex items-center space-x-3 text-slate-400">
+              <button 
+                onClick={() => handleSelectToken('demo-active-token')} 
+                className="hover:text-teal-700 transition-colors"
+              >
+                Test Patient Form
               </button>
               <span>•</span>
-              <button onClick={() => setIsDigestOpen(true)} className="hover:text-teal-700">
+              <button 
+                onClick={() => setIsDigestOpen(true)} 
+                className="hover:text-teal-700 transition-colors"
+              >
                 Weekly Ops Email
               </button>
               <span>•</span>
-              <a href={api.getExportCsvUrl()} download className="hover:text-teal-700">
+              <a 
+                href={api.getExportCsvUrl()} 
+                download 
+                className="hover:text-teal-700 transition-colors"
+              >
                 Download CSV
               </a>
             </div>
           </div>
         </footer>
-      )}
+
+      </div>
+
+      {/* Weekly Operations Email Digest Modal */}
+      <EmailDigestModal
+        isOpen={isDigestOpen}
+        onClose={() => setIsDigestOpen(false)}
+      />
 
     </div>
   );
