@@ -16,10 +16,29 @@ export default function TokenTester({ onSelectToken }) {
   const [expiryDays, setExpiryDays] = useState(3);
   const [generating, setGenerating] = useState(false);
   const [newlyGenerated, setNewlyGenerated] = useState(null);
+  const [resetting, setResetting] = useState(false);
+  const [resetNotice, setResetNotice] = useState('');
 
   useEffect(() => {
     loadData();
   }, []);
+
+  async function handleResetData() {
+    if (!window.confirm('Reset all visits, feedback entries, and tokens back to the initial demo baseline?')) return;
+    setResetting(true);
+    try {
+      const res = await api.resetSeed();
+      if (res.success) {
+        setResetNotice('✓ Database restored to fresh demo baseline with 8 nurses & clean active tokens.');
+        loadData();
+        setTimeout(() => setResetNotice(''), 4500);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to reset demo data');
+    } finally {
+      setResetting(false);
+    }
+  }
 
   async function loadData() {
     setLoading(true);
@@ -76,16 +95,35 @@ export default function TokenTester({ onSelectToken }) {
     <div className="space-y-6 animate-fade-in">
       
       {/* Overview Banner */}
-      <div className="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-6 text-white shadow-lg">
-        <div className="flex items-center space-x-2 text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">
-          <KeyRound className="w-4 h-4 text-blue-300" />
-          <span>Evaluation Demo Center</span>
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2 text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">
+            <KeyRound className="w-4 h-4 text-blue-300" />
+            <span>Evaluation Demo Center</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Single-Use Link Generator & Token Sandbox</h1>
+          <p className="text-xs sm:text-sm text-blue-100 max-w-2xl mt-1">
+            TheCarePal requires links to work exactly once (no login needed for families) and expire after a set duration. Use these test links or generate new ones to test every boundary condition.
+          </p>
         </div>
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Single-Use Link Generator & Token Sandbox</h1>
-        <p className="text-xs sm:text-sm text-blue-100 max-w-2xl mt-1">
-          TheCarePal requires links to work exactly once (no login needed for families) and expire after a set duration. Use these test links or generate new ones to test every boundary condition.
-        </p>
+
+        <button
+          onClick={handleResetData}
+          disabled={resetting}
+          className="self-start md:self-auto px-4 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-xl text-xs font-bold border border-white/20 backdrop-blur-md transition-all flex items-center space-x-2 shrink-0 shadow-xs"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
+          <span>{resetting ? 'Resetting DB...' : 'Reset Demo Data'}</span>
+        </button>
       </div>
+
+      {/* Reset Notification Notice */}
+      {resetNotice && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold animate-fade-in flex items-center space-x-2 shadow-xs">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{resetNotice}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         

@@ -32,6 +32,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import StarRating from '../components/StarRating';
+import CaregiverModal from '../components/CaregiverModal';
 import api from '../services/api';
 
 export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
@@ -45,8 +46,10 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
   const [activeTrendDimension, setActiveTrendDimension] = useState('avgRating');
   const [hideProfanity, setHideProfanity] = useState(true); // Content filter must-have
   const [nurseSearch, setNurseSearch] = useState('');
+  const [selectedCity, setSelectedCity] = useState('all');
   const [sentimentFilter, setSentimentFilter] = useState('all'); // all | positive | neutral | negative
   const [selectedNurseId, setSelectedNurseId] = useState('');
+  const [dossierNurseId, setDossierNurseId] = useState(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -76,11 +79,14 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
     }
   }
 
-  const filteredNurses = nurses.filter(n =>
-    n.name.toLowerCase().includes(nurseSearch.toLowerCase()) ||
-    n.specialty.toLowerCase().includes(nurseSearch.toLowerCase()) ||
-    n.city.toLowerCase().includes(nurseSearch.toLowerCase())
-  );
+  const filteredNurses = nurses.filter(n => {
+    const matchesSearch =
+      n.name.toLowerCase().includes(nurseSearch.toLowerCase()) ||
+      n.specialty.toLowerCase().includes(nurseSearch.toLowerCase()) ||
+      n.city.toLowerCase().includes(nurseSearch.toLowerCase());
+    const matchesCity = selectedCity === 'all' || n.city.toLowerCase() === selectedCity.toLowerCase();
+    return matchesSearch && matchesCity;
+  });
 
   const dimensionLabels = {
     avgRating: 'Overall Rating',
@@ -390,15 +396,31 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
             </p>
           </div>
 
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Search by nurse, specialty, or city..."
-              value={nurseSearch}
-              onChange={(e) => setNurseSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50"
-            />
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="text-xs py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium text-slate-700"
+            >
+              <option value="all">All Hub Cities</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Delhi NCR">Delhi NCR</option>
+              <option value="Pune">Pune</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Kolkata">Kolkata</option>
+            </select>
+
+            <div className="relative w-full sm:w-60">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search nurse, specialty..."
+                value={nurseSearch}
+                onChange={(e) => setNurseSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50"
+              />
+            </div>
           </div>
         </div>
 
@@ -415,7 +437,8 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
                 <th className="pb-3">Quality</th>
                 <th className="pb-3">Hygiene</th>
                 <th className="pb-3">Behaviour</th>
-                <th className="pb-3 text-right pr-3">Sentiment Ratio</th>
+                <th className="pb-3 text-center">Sentiment</th>
+                <th className="pb-3 text-right pr-3">Dossier</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -468,8 +491,8 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
                     <td className="py-3.5 text-slate-600 font-semibold">{nurse.avgHygiene ? `${nurse.avgHygiene}★` : '—'}</td>
                     <td className="py-3.5 text-slate-600 font-semibold">{nurse.avgBehaviour ? `${nurse.avgBehaviour}★` : '—'}</td>
 
-                    <td className="py-3.5 text-right pr-3">
-                      <div className="inline-flex items-center space-x-2 text-[11px] font-semibold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                    <td className="py-3.5 text-center">
+                      <div className="inline-flex items-center space-x-2 text-[11px] font-semibold bg-slate-50 px-2 py-1 rounded-lg border border-slate-200">
                         <span className="text-emerald-700 flex items-center" title="Positive ratings">
                           <Smile className="w-3.5 h-3.5 mr-0.5 text-emerald-600" />
                           {nurse.positiveCount || 0}
@@ -480,6 +503,18 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
                           {nurse.negativeCount || 0}
                         </span>
                       </div>
+                    </td>
+
+                    <td className="py-3.5 text-right pr-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDossierNurseId(nurse.id);
+                        }}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-50 text-teal-800 hover:text-teal-900 border border-teal-200 rounded-lg font-bold text-[11px] shadow-2xs transition-all hover:scale-102"
+                      >
+                        Dossier
+                      </button>
                     </td>
                   </tr>
                 );
@@ -609,6 +644,12 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
           })}
         </div>
       </div>
+
+      {/* Caregiver Dossier Drill-down Modal */}
+      <CaregiverModal
+        nurseId={dossierNurseId}
+        onClose={() => setDossierNurseId(null)}
+      />
 
     </div>
   );

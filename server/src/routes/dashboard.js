@@ -147,6 +147,58 @@ router.get('/nurses', (req, res) => {
 });
 
 /**
+ * GET /api/dashboard/nurses/:id
+ * Full caregiver performance dossier with historical reviews
+ */
+router.get('/nurses/:id', (req, res) => {
+  const { id } = req.params;
+  try {
+    const nurse = db.prepare('SELECT * FROM nurses WHERE id = ?').get(id);
+    if (!nurse) {
+      return res.status(404).json({ error: 'Nurse not found' });
+    }
+
+    const stats = db.prepare(`
+      SELECT 
+        COUNT(f.id) as reviewCount,
+        ROUND(AVG(f.average_rating), 2) as avgRating,
+        ROUND(AVG(f.punctuality), 2) as avgPunctuality,
+        ROUND(AVG(f.care_quality), 2) as avgQuality,
+        ROUND(AVG(f.hygiene), 2) as avgHygiene,
+        ROUND(AVG(f.behaviour), 2) as avgBehaviour,
+        SUM(CASE WHEN f.nps_score >= 9 THEN 1 ELSE 0 END) as promoterCount,
+        SUM(CASE WHEN f.nps_score <= 6 THEN 1 ELSE 0 END) as detractorCount,
+        SUM(CASE WHEN f.sentiment = 'positive' THEN 1 ELSE 0 END) as positiveCount,
+        SUM(CASE WHEN f.sentiment = 'negative' THEN 1 ELSE 0 END) as negativeCount
+      FROM feedbacks f
+      WHERE f.nurse_id = ?
+    `).get(id);
+
+    const reviews = db.prepare(`
+      SELECT 
+        f.*,
+        v.patient_name, v.family_name, v.care_type, v.visit_date
+      FROM feedbacks f
+      JOIN care_visits v ON f.visit_id = v.id
+      WHERE f.nurse_id = ?
+      ORDER BY f.created_at DESC
+    `).all(id);
+
+    return res.json({
+      success: true,
+      data: {
+        ...nurse,
+        stats,
+        reviews
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching nurse dossier:', error);
+    return res.status(500).json({ error: 'Failed to fetch nurse details.' });
+  }
+});
+
+/**
  * GET /api/dashboard/feedbacks
  * Filterable feedback stream with profanity masking options
  */

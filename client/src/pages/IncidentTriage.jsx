@@ -239,22 +239,45 @@ export default function IncidentTriage({ onStatusChange }) {
                   </div>
 
                   {/* Right Column: Actions */}
-                  <div className="lg:w-72 shrink-0 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                    <span className="text-[11px] font-bold uppercase text-slate-500 block">Triage Actions</span>
+                  <div className="lg:w-80 shrink-0 bg-slate-50 p-4 rounded-2xl border border-slate-200/90 space-y-3 shadow-2xs">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+                      Triage Action & Resolution Log
+                    </span>
+
+                    {/* Quick Resolution Templates */}
+                    <div>
+                      <span className="text-[10px] text-slate-400 block mb-1">Quick Note Templates:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {[
+                          'Family called; concern resolved.',
+                          'Caregiver coached on hygiene.',
+                          'Replacement nurse assigned.'
+                        ].map((snippet) => (
+                          <button
+                            key={snippet}
+                            type="button"
+                            onClick={() => setNotesDrafts({ ...notesDrafts, [inc.id]: snippet })}
+                            className="text-[10px] px-2 py-0.5 rounded bg-white hover:bg-slate-200 text-slate-600 border border-slate-200 font-medium transition-colors text-left"
+                          >
+                            + {snippet}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
                     <textarea
-                      placeholder="Add resolution or investigation notes (e.g., Called family, nurse scheduled for re-training)..."
+                      placeholder="Add investigation or outreach notes..."
                       value={notesDrafts[inc.id] !== undefined ? notesDrafts[inc.id] : (inc.triage_notes || '')}
                       onChange={(e) => setNotesDrafts({ ...notesDrafts, [inc.id]: e.target.value })}
                       rows={2}
-                      className="w-full p-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                      className="w-full p-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white shadow-2xs"
                     />
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <button
                         onClick={() => handleUpdateStatus(inc.id, 'contacted')}
                         disabled={updatingId === inc.id || isContacted}
-                        className="py-1.5 px-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-semibold rounded-lg shadow-xs transition-colors flex items-center justify-center space-x-1"
+                        className="py-2 px-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-bold rounded-xl shadow-xs transition-all flex items-center justify-center space-x-1"
                       >
                         <PhoneCall className="w-3.5 h-3.5" />
                         <span>Contacted</span>
@@ -263,7 +286,7 @@ export default function IncidentTriage({ onStatusChange }) {
                       <button
                         onClick={() => handleUpdateStatus(inc.id, 'resolved')}
                         disabled={updatingId === inc.id || isResolved}
-                        className="py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold rounded-lg shadow-xs transition-colors flex items-center justify-center space-x-1"
+                        className="py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold rounded-xl shadow-xs transition-all flex items-center justify-center space-x-1"
                       >
                         <Check className="w-3.5 h-3.5" />
                         <span>Resolved</span>

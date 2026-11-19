@@ -42,6 +42,32 @@ export default function FeedbackPortal({ token: propToken, onNavigateHome }) {
   const [behaviour, setBehaviour] = useState(0);
   const [npsScore, setNpsScore] = useState(null);
   const [comment, setComment] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  const QUICK_TAGS = [
+    { id: 'punctual', label: '🌟 Punctual Arrival', snippet: 'Caregiver arrived on time.' },
+    { id: 'gentle', label: '🩺 Skilled & Attentive', snippet: 'Clinical care was attentive, thorough, and skilled.' },
+    { id: 'hygienic', label: '🧼 Clean Uniform & Gloves', snippet: 'Followed proper hygiene and hand sanitization.' },
+    { id: 'polite', label: '💬 Courteous & Gentle', snippet: 'Very polite, gentle, and respectful.' },
+    { id: 'delayed', label: '⏰ Delayed Arrival', snippet: 'Caregiver was delayed in reaching.' },
+    { id: 'rushed', label: '⚡ Rushed Visit', snippet: 'Visit felt rushed or hurried.' }
+  ];
+
+  function toggleTag(tag) {
+    if (selectedTags.includes(tag.id)) {
+      setSelectedTags(selectedTags.filter(t => t !== tag.id));
+      // Remove snippet from comment if present
+      setComment(prev => prev.replace(tag.snippet, '').trim());
+    } else {
+      setSelectedTags([...selectedTags, tag.id]);
+      // Append snippet to comment
+      setComment(prev => (prev ? `${prev} ${tag.snippet}` : tag.snippet));
+    }
+  }
+
+  const calculatedAvg = (punctuality > 0 && careQuality > 0 && hygiene > 0 && behaviour > 0)
+    ? ((punctuality + careQuality + hygiene + behaviour) / 4).toFixed(1)
+    : null;
 
   useEffect(() => {
     if (token) {
@@ -366,6 +392,26 @@ export default function FeedbackPortal({ token: propToken, onNavigateHome }) {
                 <StarRating value={behaviour} onChange={setBehaviour} />
               </div>
             </div>
+
+            {/* Live Calculated Care Score Preview */}
+            {calculatedAvg && (
+              <div className="mt-4 p-3.5 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/80 rounded-2xl flex items-center justify-between text-xs animate-fade-in shadow-2xs">
+                <div className="flex items-center space-x-2">
+                  <span className="p-1 rounded-lg bg-teal-100 text-teal-800 font-black">
+                    ★
+                  </span>
+                  <div>
+                    <span className="font-extrabold text-teal-950 block">Overall Care Rating: {calculatedAvg} / 5.0</span>
+                    <span className="text-[11px] text-teal-700 font-medium">
+                      {calculatedAvg >= 4.5 ? 'Exceptional visit standards' : calculatedAvg >= 3.5 ? 'Good quality standard' : 'Marked for supervisor review'}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white text-teal-800 border border-teal-200">
+                  Calculated Live
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Section: NPS Question */}
@@ -379,16 +425,44 @@ export default function FeedbackPortal({ token: propToken, onNavigateHome }) {
             <NpsSelector value={npsScore} onChange={setNpsScore} />
           </div>
 
-          {/* Section: Qualitative Comment */}
+          {/* Section: Qualitative Comment & Quick Tag Suggestions */}
           <div className="pt-4 border-t border-slate-100">
-            <label className="text-sm font-bold text-slate-800 block mb-1">
-              Personal Comments & Observations (Optional)
-            </label>
-            <p className="text-xs text-slate-500 mb-2">
-              Share details on what went especially well or areas where we can do better.
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-bold text-slate-800 block">
+                Personal Comments & Observations (Optional)
+              </label>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {comment.length} / 500 chars
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mb-2.5">
+              Tap quick impression tags or write your specific observations:
             </p>
+
+            {/* Quick Feedback Tags */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {QUICK_TAGS.map((tag) => {
+                const isSelected = selectedTags.includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      isSelected
+                        ? 'bg-teal-600 text-white shadow-2xs scale-102 ring-1 ring-teal-700'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/70'
+                    }`}
+                  >
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <textarea
               rows={4}
+              maxLength={500}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="e.g., The caregiver was extraordinarily gentle when assisting with exercises, and kept us updated..."

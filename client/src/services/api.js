@@ -47,6 +47,11 @@ export const api = {
     return handleResponse(res);
   },
 
+  async getNurseDossier(id) {
+    const res = await fetch(`${BASE_URL}/dashboard/nurses/${id}`);
+    return handleResponse(res);
+  },
+
   async getFeedbacks(params = {}) {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
@@ -91,6 +96,13 @@ export const api = {
   // Weekly Operations Digest
   async getWeeklyDigest() {
     const res = await fetch(`${BASE_URL}/admin/weekly-digest`);
+    return handleResponse(res);
+  },
+
+  async resetSeed() {
+    const res = await fetch(`${BASE_URL}/admin/reset-seed`, {
+      method: 'POST'
+    });
     return handleResponse(res);
   },
 

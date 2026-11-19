@@ -2,6 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import db from '../data/db.js';
 import { generateWeeklyDigest } from '../services/emailDigestService.js';
+import { runSeed } from '../data/seed.js';
 
 const router = express.Router();
 
@@ -242,6 +243,23 @@ router.get('/weekly-digest', (req, res) => {
   } catch (error) {
     console.error('Error generating weekly digest:', error);
     return res.status(500).json({ error: 'Failed to generate weekly email digest.' });
+  }
+});
+
+/**
+ * POST /api/admin/reset-seed
+ * Restores database to fresh demo baseline with 8 nurses and pre-seeded feedback
+ */
+router.post('/reset-seed', (req, res) => {
+  try {
+    runSeed();
+    return res.json({
+      success: true,
+      message: 'Database reset and fresh demo data seeded successfully.'
+    });
+  } catch (error) {
+    console.error('Error resetting database:', error);
+    return res.status(500).json({ error: 'Failed to reset and re-seed database.' });
   }
 });
 
