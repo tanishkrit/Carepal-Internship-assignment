@@ -28,9 +28,9 @@ This application provides:
 ### 2.1. Must-Have Requirements
 - [x] **Single-Use Tokenized Feedback Form (`/feedback/:token`):**
   - Frictionless access with no login or authentication barrier for the family member.
-  - Granular 1–5 star ratings across: **Punctuality**, **Quality of Care**, **Hygiene & Safety**, **Behaviour & Compassion**.
-  - Net Promoter Score (NPS) scale (0–10).
-  - Qualitative comments textarea.
+  - Granular 1–5 star ratings across: **Punctuality**, **Quality of Care**, **Hygiene & Safety**, **Behaviour & Compassion** with a live calculated care score.
+  - **Progressive NPS Meter (0–10):** Color-graded visual meter that progressively fills from Red (0–6 Detractors) through Yellow/Amber (7–8 Passives) to Green/Emerald (9–10 Promoters) up to the selected or hovered score.
+  - Quick impression tags & qualitative comments textarea.
 - [x] **Link Security & Expiration Engine:**
   - **Single-Use Guarantee:** Once submitted, the token status changes to `submitted` within a transactional database operation; subsequent attempts are safely rejected.
   - **Expiry Enforcement:** Automatic check comparing `expires_at` against current timestamp.
