@@ -47,6 +47,14 @@ export default function Sidebar({
       icon: KeyRound,
       badge: 'Demo',
       badgeColor: 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30'
+    },
+    {
+      id: 'feedback',
+      label: 'Family Feedback Form',
+      subtitle: 'Unique Link (No Login)',
+      icon: ExternalLink,
+      badge: 'Public',
+      badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
     }
   ];
 

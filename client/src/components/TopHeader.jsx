@@ -6,7 +6,8 @@ import {
   Activity, 
   Bell, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -73,6 +74,18 @@ export default function TopHeader({
               <span>{triageAlertCount} Alert{triageAlertCount > 1 ? 's' : ''}</span>
             </div>
           )}
+
+          {/* Direct Public Form Link (No Login) */}
+          <a
+            href="/feedback/demo-active-token"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-teal-800 border border-teal-200 text-xs font-bold transition-all shadow-2xs"
+            title="Open Public Family Feedback Form (No Login Required)"
+          >
+            <span>Open Feedback Form</span>
+            <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
+          </a>
 
           {/* Email Digest Action */}
           <button
