@@ -85,13 +85,116 @@ This application provides:
 
 ---
 
-## 4. Setup and Run Guide
+## 4. Repository Structure & File Meaning
 
-### 4.1. Prerequisites
+```
+Carepal-Internship-assignment/
+├── .env.example                       # Environment configuration template
+├── .gitignore                         # Git exclusion rules (node_modules, SQLite WAL, builds)
+├── package.json                       # Root script orchestrator (concurrent dev runner & seed)
+├── package-lock.json                  # Root dependency lockfile
+├── README.md                          # Full architectural documentation & walkthrough guide
+├── goal.md                            # Comprehensive requirement & grading rubric breakdown
+│
+├── client/                            # React 18 + Vite Frontend Application
+│   ├── index.html                     # HTML root document with healthcare fonts & meta tags
+│   ├── vite.config.js                 # Vite build settings & dev server proxy configuration
+│   ├── tailwind.config.js             # Tailwind design system tokens, colors & typography
+│   ├── postcss.config.js              # PostCSS pipeline for Tailwind processing
+│   ├── package.json                   # Client-side dependencies and build scripts
+│   ├── public/                        # Static brand assets & vector favicons
+│   │   ├── favicon.svg                # CarePal heart-handshake vector favicon
+│   │   └── icons.svg                  # Brand SVG icons sprite
+│   └── src/
+│       ├── main.jsx                   # React DOM application bootstrap
+│       ├── App.jsx                    # Root view controller, routing & global modal states
+│       ├── index.css                  # Global styles, Tailwind directives & scrollbar rules
+│       │
+│       ├── pages/                     # High-level route views
+│       │   ├── AdminDashboard.jsx     # Clinical KPI cards, Recharts trends, scorecards & stream
+│       │   ├── FeedbackPortal.jsx     # Zero-login family form (stars, NPS meter, tags & comment)
+│       │   ├── IncidentTriage.jsx     # Low-score (<3.0) queue with workflow action controls
+│       │   └── TokenTester.jsx        # Sandbox for Active/Expired/Used tokens & 1-click DB reset
+│       │
+│       ├── components/                # Modular reusable UI widgets
+│       │   ├── Sidebar.jsx            # Left vertical nav sidebar with live quality monitor status
+│       │   ├── TopHeader.jsx          # Sticky context bar with quick-actions & triage alert badge
+│       │   ├── ShareFeedbackModal.jsx # Doctor-specific link generator with WhatsApp & Email share
+│       │   ├── AddCaregiverModal.jsx  # Member onboarding form to add new caregivers to roster
+│       │   ├── CaregiverModal.jsx     # Clinical dossier drill-down with benchmarks & commendations
+│       │   ├── NpsSelector.jsx        # Progressive Red->Yellow->Green 0-10 NPS visual scale
+│       │   ├── StarRating.jsx         # Accessible 1-5 star rating component with hover labels
+│       │   └── EmailDigestModal.jsx   # Weekly operations summary email preview & HTML copy
+│       │
+│       └── services/
+│           └── api.js                 # Unified frontend API client (fetch wrapper with error handling)
+│
+└── server/                            # Node.js + Express 5 Backend REST API
+    ├── package.json                   # Backend dependencies & seeding scripts
+    ├── data/
+    │   └── carepal.db                 # Embedded SQLite ACID database file (WAL mode enabled)
+    └── src/
+        ├── index.js                   # Express server entry point, CORS, routes & health check
+        ├── data/
+        │   ├── db.js                  # SQLite connection singleton & table schema definitions
+        │   └── seed.js                # Database seeder (8 caregivers, 22+ reviews, test tokens)
+        ├── routes/
+        │   ├── feedback.js            # Public token verification & transactional submission
+        │   ├── dashboard.js           # Metrics, longitudinal trends, nurse roster & member CRUD
+        │   └── admin.js               # Low-score triage queue, status patches, CSV export & token gen
+        └── services/
+            ├── moderationService.js   # Automated abusive language regex censor (****)
+            ├── sentimentService.js    # Domain sentiment classifier (Positive, Neutral, Negative)
+            └── emailDigestService.js  # Weekly operations digest compiler & HTML email template
+```
+
+### Detailed File Meaning Reference
+
+| Directory / File | Type | Meaning & Responsibilities |
+| :--- | :--- | :--- |
+| **Root Level** | | |
+| `package.json` | Config | Defines top-level commands (`npm run dev`, `npm run seed`, `npm run install:all`) to concurrently run frontend and backend without terminal clutter. |
+| `goal.md` | Doc | Architectural brief breaking down the motives, must-have requirements, and clinical quality pillars from the internship PDF (`FS-08`). |
+| `.env.example` | Config | Template specifying default ports (`PORT=5000`, `VITE_PORT=5173`) and base URLs. |
+| **Client Core** | | |
+| `client/src/App.jsx` | React Component | Master layout coordinator that switches between the distraction-free public family portal and the enterprise admin view with left vertical navigation. |
+| `client/src/services/api.js` | Service | Frontend HTTP client centralizing all REST calls (`getMetrics`, `verifyToken`, `submitFeedback`, `addNurse`, `deleteNurse`, `generateToken`). |
+| **Client Pages** | | |
+| `AdminDashboard.jsx` | Page View | Executive operations dashboard displaying high-level KPIs, 30-day volume, Recharts area trends, caregiver scorecard table, and family feedback stream. |
+| `FeedbackPortal.jsx` | Page View | Clean, frictionless form opened via single-use link. Validates token validity, renders caregiver details, star ratings, NPS meter, and celebratory confetti upon submit. |
+| `IncidentTriage.jsx` | Page View | Escalation queue displaying all ratings $\le 3.0$. Enables operations leads to transition status (`Pending` $\rightarrow$ `Contacted Family` $\rightarrow$ `Resolved`) and append notes. |
+| `TokenTester.jsx` | Page View | Reviewer utility testing active tokens, expired tokens, and already-submitted tokens, plus a 1-click database reset button. |
+| **Client Components** | | |
+| `Sidebar.jsx` | UI Component | Enterprise left vertical navigation sidebar featuring live system monitor pill, core navigation tabs, report triggers, and team profile. |
+| `TopHeader.jsx` | UI Component | Sticky top context bar showing current page header, system normal pill, real-time triage alert counter, and "Share Feedback Form" quick action. |
+| `ShareFeedbackModal.jsx` | UI Component | Doctor-specific feedback sharing modal allowing operations to choose a doctor, enter patient name, pick expiry (1–14 days), and send via WhatsApp or Email. |
+| `AddCaregiverModal.jsx` | UI Component | Modal form allowing administrators to onboard new healthcare professionals (name, specialty, city, phone, experience) to the active roster. |
+| `CaregiverModal.jsx` | UI Component | Clinical evaluation dossier modal displaying individual nurse dimension averages vs benchmarks, visit history, commendations, and direct share. |
+| `NpsSelector.jsx` | UI Component | Interactive 0 to 10 NPS rating meter that progressively fills from Red (Detractors) through Yellow (Passives) to Green (Promoters) up to the selected score. |
+| `StarRating.jsx` | UI Component | Accessible 1 to 5 star rating widget supporting interactive rating and read-only displays. |
+| `EmailDigestModal.jsx` | UI Component | Modal displaying the generated responsive HTML operations email digest with 1-click clipboard copy. |
+| **Server Core** | | |
+| `server/src/index.js` | Express Server | REST API entry point configuring CORS, body parsing, route mounting, static assets serving, and graceful shutdown handlers. |
+| `server/src/data/db.js` | Database Layer | SQLite database connector utilizing `better-sqlite3` in WAL mode with foreign key enforcement and table schema creation. |
+| `server/src/data/seed.js` | Database Seed | Populates 8 realistic Indian caregivers, 22+ historical visit reviews, and active/expired/used tokens for evaluation. |
+| **Server Routes** | | |
+| `routes/feedback.js` | Express Router | Handles `/api/feedback/verify/:token` and `/api/feedback/submit`. Enforces single-use sealing within an ACID database transaction. |
+| `routes/dashboard.js` | Express Router | Supplies analytics data (`/metrics`, `/trends`, `/nurses`), individual dossiers, and caregiver roster management (`POST` and `DELETE` nurse). |
+| `routes/admin.js` | Express Router | Administrative endpoints for low-score triage queue, ticket status updates, RFC-compliant CSV export, token generation, and database reset. |
+| **Server Services** | | |
+| `moderationService.js`| Micro-service | High-performance regex content filter that masks abusive or offensive words with asterisks (`****`). |
+| `sentimentService.js` | Micro-service | Domain sentiment classifier analyzing family comments and calibrating semantic tone with numerical star ratings. |
+| `emailDigestService.js`| Micro-service | Weekly summary compiler that calculates 7-day KPIs, top caregivers, open incidents, and renders a clean HTML email template. |
+
+---
+
+## 5. Setup and Run Guide
+
+### 5.1. Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher recommended, tested on v22.17)
 - npm (v9 or higher)
 
-### 4.2. Quick Start (Zero Cloud Dependencies)
+### 5.2. Quick Start (Zero Cloud Dependencies)
 
 1. **Clone the repository:**
    ```bash
@@ -120,7 +223,7 @@ This application provides:
 
 ---
 
-## 5. Live Evaluation Test Scenarios
+## 6. Live Evaluation Test Scenarios
 
 To test all edge cases during evaluation, use the pre-seeded tokens available directly in the **Demo Link Sandbox** tab of the dashboard:
 
@@ -138,7 +241,7 @@ To test all edge cases during evaluation, use the pre-seeded tokens available di
 
 ---
 
-## 6. How It Works (Security & Token Lifecycle)
+## 7. How It Works (Security & Token Lifecycle)
 
 ```
 [ Caregiver completes home visit ]
@@ -168,7 +271,7 @@ To test all edge cases during evaluation, use the pre-seeded tokens available di
 
 ---
 
-## 7. What I Would Build Next (Production Roadmap)
+## 8. What I Would Build Next (Production Roadmap)
 
 If deploying this system into TheCarePal's nationwide production infrastructure, the next roadmap phases would include:
 1. **Automated WhatsApp & SMS Gateway:** Webhook listener attached to the Nurse mobile app shift-checkout event to trigger automated WhatsApp/SMS dispatch via Twilio/Gupshup.
@@ -179,7 +282,7 @@ If deploying this system into TheCarePal's nationwide production infrastructure,
 
 ---
 
-## 8. AI Tools Disclosure
+## 9. AI Tools Disclosure
 
 As per TheCarePal assignment instructions, here is the full disclosure of AI tools utilized during this project:
 - **Google Antigravity Agent (Gemini 3.8 Flash High):** Utilized for initial architectural scoping, drafting the implementation roadmap, structuring data models, and generating realistic Indian home care seed personas and clinical comments.
@@ -187,7 +290,7 @@ As per TheCarePal assignment instructions, here is the full disclosure of AI too
 
 ---
 
-## 9. Screen-Recorded Video Walkthrough Script (2–5 Minutes)
+## 10. Screen-Recorded Video Walkthrough Script (2–5 Minutes)
 
 When recording your demo video, follow this structured outline:
 1. **Introduction (0:00 - 0:30):**
