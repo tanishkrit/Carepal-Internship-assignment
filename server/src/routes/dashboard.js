@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import db from '../data/db.js';
 
 const router = express.Router();
@@ -143,6 +144,92 @@ router.get('/nurses', (req, res) => {
   } catch (error) {
     console.error('Error fetching nurses scorecard:', error);
     return res.status(500).json({ error: 'Failed to fetch nurse scorecards.' });
+  }
+});
+
+/**
+ * POST /api/dashboard/nurses
+ * Adds a new caregiver / nurse member to the active roster
+ */
+router.post('/nurses', (req, res) => {
+  const { name, email, phone, specialty, experience_years, avatar_url, city } = req.body;
+
+  if (!name || !specialty || !city) {
+    return res.status(400).json({ error: 'Name, specialty, and hub city are required.' });
+  }
+
+  try {
+    const id = 'nurse-' + crypto.randomUUID().slice(0, 8);
+    const nowIso = new Date().toISOString();
+    const defaultAvatars = [
+      'https://images.unsplash.com/photo-1594824813637-296316719b9d?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&auto=format&fit=crop&q=80'
+    ];
+    const chosenAvatar = avatar_url || defaultAvatars[Math.floor(Math.random() * defaultAvatars.length)];
+
+    db.prepare(`
+      INSERT INTO nurses (id, name, email, phone, specialty, experience_years, avatar_url, city, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      name.trim(),
+      email ? email.trim() : `${name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@thecarepal.com`,
+      phone ? phone.trim() : '+91 98000 00000',
+      specialty.trim(),
+      Number(experience_years) || 4,
+      chosenAvatar,
+      city.trim(),
+      nowIso
+    );
+
+    const createdNurse = db.prepare('SELECT * FROM nurses WHERE id = ?').get(id);
+
+    return res.status(201).json({
+      success: true,
+      message: `Caregiver ${name} added to the active roster successfully.`,
+      data: createdNurse
+    });
+  } catch (error) {
+    console.error('Error adding caregiver:', error);
+    return res.status(500).json({ error: 'Failed to add caregiver to roster.' });
+  }
+});
+
+/**
+ * DELETE /api/dashboard/nurses/:id
+ * Removes a caregiver member and cascades cleanup safely
+ */
+router.delete('/nurses/:id', (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const nurse = db.prepare('SELECT * FROM nurses WHERE id = ?').get(id);
+    if (!nurse) {
+      return res.status(404).json({ error: 'Caregiver not found.' });
+    }
+
+    const removeTransaction = db.transaction(() => {
+      // 1. Delete associated feedbacks
+      db.prepare('DELETE FROM feedbacks WHERE nurse_id = ?').run(id);
+      // 2. Delete associated feedback tokens
+      db.prepare('DELETE FROM feedback_tokens WHERE nurse_id = ?').run(id);
+      // 3. Delete associated care visits
+      db.prepare('DELETE FROM care_visits WHERE nurse_id = ?').run(id);
+      // 4. Delete nurse record
+      db.prepare('DELETE FROM nurses WHERE id = ?').run(id);
+    });
+
+    removeTransaction();
+
+    return res.json({
+      success: true,
+      message: `Caregiver ${nurse.name} has been removed from the active roster.`
+    });
+  } catch (error) {
+    console.error('Error removing caregiver:', error);
+    return res.status(500).json({ error: 'Failed to remove caregiver.' });
   }
 });
 

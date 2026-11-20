@@ -40,8 +40,9 @@ This application provides:
   - **Net Promoter Score (NPS):** Computed dynamically using the official formula:
     $$\text{NPS} = \% \text{Promoters (9-10)} - \% \text{Detractors (0-6)}$$
   - **Longitudinal Trend Chart:** Recharts Area chart tracking daily/weekly quality score trajectories across all 4 care dimensions.
-  - **Caregiver Scorecards & Leaderboard:** Granular metrics per nurse (total visits, average rating, punctuality, hygiene, behaviour, and sentiment balance).
-  - **Incident Triage Queue (Low-Score Alerts):** Immediate alerting for ratings $\le 3.0$ or individual dimensions $\le 2$, with workflow actions (`Pending` $\rightarrow$ `Contacted Family` $\rightarrow$ `Resolved`).
+  - **Caregiver Scorecards & Member Management:** Granular metrics per nurse (total visits, average rating, punctuality, hygiene, behaviour, and sentiment balance). Includes ability to **Add New Caregiver Members** to the active roster and **Remove Members** with cascading integrity.
+  - **Caregiver Evaluation Dossier:** Comprehensive drill-down modal per nurse showing historical review timeline, dimension averages vs benchmarks, and commendation triggers.
+  - **Incident Triage Queue (Low-Score Alerts):** Immediate alerting for ratings $\le 3.0$ or individual dimensions $\le 2$, with workflow actions (`Pending` $\rightarrow$ `Contacted Family` $\rightarrow$ `Resolved`) and one-click quick note templates.
 - [x] **Content Moderation & Profanity Masking:**
   - Automated regex engine censors abusive words with asterisks (`****`).
   - Dashboard control: *"Abusive Filter: ON (Masked)"* vs *"Abusive Filter: OFF (Raw)"* toggle for operations audits.

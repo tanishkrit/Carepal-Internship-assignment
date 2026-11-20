@@ -13,12 +13,13 @@ import {
   ShieldCheck, 
   CheckCircle2, 
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import StarRating from './StarRating';
 import api from '../services/api';
 
-export default function CaregiverModal({ nurseId, onClose }) {
+export default function CaregiverModal({ nurseId, onClose, onDelete }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionNotice, setActionNotice] = useState('');
@@ -265,11 +266,26 @@ export default function CaregiverModal({ nurseId, onClose }) {
             </button>
             <button
               onClick={() => handleAction('audit')}
-              className="px-3.5 py-1.5 bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200 font-bold rounded-xl transition-colors flex items-center space-x-1.5"
+              className="px-3.5 py-1.5 bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 font-bold rounded-xl transition-colors flex items-center space-x-1.5"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-rose-600" />
-              <span>Schedule Supervisor Audit</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <span>Supervisor Audit</span>
             </button>
+            {onDelete && data && (
+              <button
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to remove caregiver "${data.name}" from the active roster?`)) {
+                    onDelete(data.id);
+                    onClose();
+                  }
+                }}
+                className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold rounded-xl transition-colors flex items-center space-x-1"
+                title="Remove caregiver member from active roster"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span>Remove</span>
+              </button>
+            )}
           </div>
 
           <button

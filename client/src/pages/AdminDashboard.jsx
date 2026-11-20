@@ -29,10 +29,14 @@ import {
   Award,
   ChevronRight,
   Activity,
-  HeartHandshake
+  HeartHandshake,
+  UserPlus,
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import CaregiverModal from '../components/CaregiverModal';
+import AddCaregiverModal from '../components/AddCaregiverModal';
 import api from '../services/api';
 
 export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
@@ -50,6 +54,51 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
   const [sentimentFilter, setSentimentFilter] = useState('all'); // all | positive | neutral | negative
   const [selectedNurseId, setSelectedNurseId] = useState('');
   const [dossierNurseId, setDossierNurseId] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4500);
+  }
+
+  function handleAddCaregiverSuccess(newNurse, msg) {
+    setNurses(prev => [{
+      ...newNurse,
+      reviewCount: 0,
+      avgRating: null,
+      avgPunctuality: null,
+      avgQuality: null,
+      avgHygiene: null,
+      avgBehaviour: null,
+      positiveCount: 0,
+      negativeCount: 0
+    }, ...prev]);
+    showToast(msg || `✓ Caregiver ${newNurse.name} added to the active roster.`);
+  }
+
+  async function handleDeleteNurse(nurse) {
+    const confirmed = window.confirm(
+      `Are you sure you want to remove caregiver "${nurse.name}" from the active roster?\n\nThis will remove their profile and associated visits.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await api.deleteNurse(nurse.id);
+      if (res.success) {
+        setNurses(prev => prev.filter(n => n.id !== nurse.id));
+        if (selectedNurseId === nurse.id) {
+          setSelectedNurseId('');
+        }
+        showToast(res.message || `Caregiver ${nurse.name} removed successfully.`);
+        // Reload metrics
+        const metRes = await api.getMetrics();
+        if (metRes.success) setMetrics(metRes.data);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to remove caregiver.');
+    }
+  }
 
   useEffect(() => {
     loadDashboardData();
@@ -383,6 +432,13 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
 
       {/* 4. Caregiver Leaderboard & Scorecards */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs">
+        {toastMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs font-bold flex items-center space-x-2 animate-fade-in shadow-2xs">
+            <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
             <div className="flex items-center space-x-2">
@@ -392,11 +448,19 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Click any caregiver row to filter customer reviews below
+              Manage clinical team members, view dossiers, or click a row to filter reviews
             </p>
           </div>
 
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all shrink-0"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Add Member</span>
+            </button>
+
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
@@ -411,7 +475,7 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
               <option value="Kolkata">Kolkata</option>
             </select>
 
-            <div className="relative w-full sm:w-60">
+            <div className="relative w-full sm:w-56">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
@@ -438,7 +502,7 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
                 <th className="pb-3">Hygiene</th>
                 <th className="pb-3">Behaviour</th>
                 <th className="pb-3 text-center">Sentiment</th>
-                <th className="pb-3 text-right pr-3">Dossier</th>
+                <th className="pb-3 text-right pr-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -506,15 +570,27 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
                     </td>
 
                     <td className="py-3.5 text-right pr-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDossierNurseId(nurse.id);
-                        }}
-                        className="px-2.5 py-1 bg-white hover:bg-teal-50 text-teal-800 hover:text-teal-900 border border-teal-200 rounded-lg font-bold text-[11px] shadow-2xs transition-all hover:scale-102"
-                      >
-                        Dossier
-                      </button>
+                      <div className="flex items-center justify-end space-x-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDossierNurseId(nurse.id);
+                          }}
+                          className="px-2.5 py-1 bg-white hover:bg-teal-50 text-teal-800 hover:text-teal-900 border border-teal-200 rounded-lg font-bold text-[11px] shadow-2xs transition-all hover:scale-102"
+                        >
+                          Dossier
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteNurse(nurse);
+                          }}
+                          className="p-1.5 bg-white hover:bg-rose-50 text-rose-500 hover:text-rose-700 border border-rose-200 rounded-lg shadow-2xs transition-all hover:scale-105"
+                          title={`Remove ${nurse.name} from active roster`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -649,6 +725,17 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
       <CaregiverModal
         nurseId={dossierNurseId}
         onClose={() => setDossierNurseId(null)}
+        onDelete={(id) => {
+          const nurse = nurses.find(n => n.id === id);
+          if (nurse) handleDeleteNurse(nurse);
+        }}
+      />
+
+      {/* Add New Caregiver Member Modal */}
+      <AddCaregiverModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={handleAddCaregiverSuccess}
       />
 
     </div>

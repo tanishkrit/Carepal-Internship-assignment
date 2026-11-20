@@ -52,6 +52,22 @@ export const api = {
     return handleResponse(res);
   },
 
+  async addNurse(nurseData) {
+    const res = await fetch(`${BASE_URL}/dashboard/nurses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(nurseData)
+    });
+    return handleResponse(res);
+  },
+
+  async deleteNurse(id) {
+    const res = await fetch(`${BASE_URL}/dashboard/nurses/${id}`, {
+      method: 'DELETE'
+    });
+    return handleResponse(res);
+  },
+
   async getFeedbacks(params = {}) {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
