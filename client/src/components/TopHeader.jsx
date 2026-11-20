@@ -7,7 +7,8 @@ import {
   Bell, 
   CheckCircle2, 
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Share2
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -15,6 +16,7 @@ export default function TopHeader({
   activeTab, 
   onToggleSidebar, 
   onOpenDigest, 
+  onOpenShareModal,
   triageAlertCount = 0 
 }) {
   const titles = {
@@ -76,16 +78,14 @@ export default function TopHeader({
           )}
 
           {/* Direct Public Form Link (No Login) */}
-          <a
-            href="/feedback/demo-active-token"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-teal-800 border border-teal-200 text-xs font-bold transition-all shadow-2xs"
-            title="Open Public Family Feedback Form (No Login Required)"
+          <button
+            onClick={() => onOpenShareModal && onOpenShareModal()}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-xs"
+            title="Generate & Share Doctor Feedback Link (No Login Required)"
           >
-            <span>Open Feedback Form</span>
-            <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
-          </a>
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share Feedback Form</span>
+          </button>
 
           {/* Email Digest Action */}
           <button

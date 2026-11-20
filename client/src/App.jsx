@@ -6,6 +6,7 @@ import IncidentTriage from './pages/IncidentTriage';
 import TokenTester from './pages/TokenTester';
 import FeedbackPortal from './pages/FeedbackPortal';
 import EmailDigestModal from './components/EmailDigestModal';
+import ShareFeedbackModal from './components/ShareFeedbackModal';
 import api from './services/api';
 
 export default function App() {
@@ -29,6 +30,13 @@ export default function App() {
   const [isDigestOpen, setIsDigestOpen] = useState(false);
   const [triageAlertCount, setTriageAlertCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareNurseId, setShareNurseId] = useState(null);
+
+  function handleOpenShareModal(nurseId = null) {
+    setShareNurseId(nurseId);
+    setIsShareModalOpen(true);
+  }
 
   useEffect(() => {
     loadAlertCount();
@@ -107,6 +115,7 @@ export default function App() {
         }}
         triageAlertCount={triageAlertCount}
         onOpenDigest={() => setIsDigestOpen(true)}
+        onOpenShareModal={handleOpenShareModal}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -119,6 +128,7 @@ export default function App() {
           activeTab={activeTab}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onOpenDigest={() => setIsDigestOpen(true)}
+          onOpenShareModal={handleOpenShareModal}
           triageAlertCount={triageAlertCount}
         />
 
@@ -128,6 +138,7 @@ export default function App() {
             <AdminDashboard
               onNavigateTriage={() => setActiveTab('triage')}
               onOpenDigest={() => setIsDigestOpen(true)}
+              onOpenShareModal={handleOpenShareModal}
             />
           )}
 
@@ -180,6 +191,14 @@ export default function App() {
       <EmailDigestModal
         isOpen={isDigestOpen}
         onClose={() => setIsDigestOpen(false)}
+      />
+
+      {/* Share Specific Caregiver / Doctor Feedback Modal */}
+      <ShareFeedbackModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        initialNurseId={shareNurseId}
+        onOpenFormDirectly={handleSelectToken}
       />
 
     </div>

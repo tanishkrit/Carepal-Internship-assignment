@@ -32,14 +32,15 @@ import {
   HeartHandshake,
   UserPlus,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  Share2
 } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import CaregiverModal from '../components/CaregiverModal';
 import AddCaregiverModal from '../components/AddCaregiverModal';
 import api from '../services/api';
 
-export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
+export default function AdminDashboard({ onNavigateTriage, onOpenDigest, onOpenShareModal }) {
   const [metrics, setMetrics] = useState(null);
   const [trends, setTrends] = useState([]);
   const [nurses, setNurses] = useState([]);
@@ -574,9 +575,20 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (onOpenShareModal) onOpenShareModal(nurse.id);
+                          }}
+                          className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-lg font-bold text-[11px] shadow-2xs transition-all flex items-center space-x-1"
+                          title={`Share Feedback Link for ${nurse.name}`}
+                        >
+                          <Share2 className="w-3 h-3 text-teal-600" />
+                          <span>Share</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setDossierNurseId(nurse.id);
                           }}
-                          className="px-2.5 py-1 bg-white hover:bg-teal-50 text-teal-800 hover:text-teal-900 border border-teal-200 rounded-lg font-bold text-[11px] shadow-2xs transition-all hover:scale-102"
+                          className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-bold text-[11px] shadow-2xs transition-all hover:scale-102"
                         >
                           Dossier
                         </button>
@@ -725,6 +737,7 @@ export default function AdminDashboard({ onNavigateTriage, onOpenDigest }) {
       <CaregiverModal
         nurseId={dossierNurseId}
         onClose={() => setDossierNurseId(null)}
+        onOpenShareModal={onOpenShareModal}
         onDelete={(id) => {
           const nurse = nurses.find(n => n.id === id);
           if (nurse) handleDeleteNurse(nurse);

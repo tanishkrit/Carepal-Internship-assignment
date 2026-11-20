@@ -21,6 +21,7 @@ export default function Sidebar({
   setActiveTab, 
   triageAlertCount = 0, 
   onOpenDigest, 
+  onOpenShareModal,
   isOpen = false, 
   onClose = () => {} 
 }) {
@@ -129,7 +130,15 @@ export default function Sidebar({
                     <button
                       key={item.id}
                       onClick={() => {
-                        setActiveTab(item.id);
+                        if (item.id === 'feedback') {
+                          if (onOpenShareModal) {
+                            onOpenShareModal();
+                          } else {
+                            setActiveTab('feedback');
+                          }
+                        } else {
+                          setActiveTab(item.id);
+                        }
                         onClose();
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs font-semibold transition-all group ${
@@ -203,14 +212,21 @@ export default function Sidebar({
                 </a>
 
                 <button
-                  onClick={() => { setActiveTab('feedback'); onClose(); }}
+                  onClick={() => { 
+                    if (onOpenShareModal) {
+                      onOpenShareModal();
+                    } else {
+                      setActiveTab('feedback');
+                    }
+                    onClose(); 
+                  }}
                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors group"
                 >
                   <div className="flex items-center space-x-3">
                     <div className="p-1.5 rounded-lg text-slate-400 group-hover:text-teal-400 group-hover:bg-slate-800">
                       <ExternalLink className="w-4 h-4" />
                     </div>
-                    <span>Public Form Preview</span>
+                    <span>Share Doctor Form</span>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-300" />
                 </button>

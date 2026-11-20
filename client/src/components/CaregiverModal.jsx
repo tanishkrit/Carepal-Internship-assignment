@@ -14,12 +14,13 @@ import {
   CheckCircle2, 
   TrendingUp,
   Sparkles,
-  Trash2
+  Trash2,
+  Share2
 } from 'lucide-react';
 import StarRating from './StarRating';
 import api from '../services/api';
 
-export default function CaregiverModal({ nurseId, onClose, onDelete }) {
+export default function CaregiverModal({ nurseId, onClose, onDelete, onOpenShareModal }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionNotice, setActionNotice] = useState('');
@@ -256,7 +257,20 @@ export default function CaregiverModal({ nurseId, onClose, onDelete }) {
 
         {/* Modal Footer with Actions */}
         <div className="px-6 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenShareModal && data && (
+              <button
+                onClick={() => {
+                  onOpenShareModal(data.id);
+                  onClose();
+                }}
+                className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-colors flex items-center space-x-1.5 shadow-xs"
+                title={`Generate feedback link for ${data.name}`}
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Feedback Form</span>
+              </button>
+            )}
             <button
               onClick={() => handleAction('commendation')}
               className="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 font-bold rounded-xl transition-colors flex items-center space-x-1.5"
