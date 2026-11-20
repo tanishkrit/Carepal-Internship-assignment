@@ -194,3 +194,5 @@ When recording your demo video, follow this structured outline:
    - Show `moderationService.js` and `sentimentService.js`.
 5. **Conclusion (4:30 - 4:45):**
    - Mention production roadmap (WhatsApp triggers, scheduled cron) and thank the team.
+#   C a r e p a l - I n t e r n s h i p - a s s i g n m e n t  
+ 
